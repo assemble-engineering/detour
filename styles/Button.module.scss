@@ -1,0 +1,60 @@
+.button {
+  @apply text-center bg-lime border-lime border hover:bg-lime hover:bg-white hover:border-black text-black hover:text-black uppercase transition-colors font-sans font-light text-base tracking-wider rounded-full px-6 py-3;
+
+  &.button--small {
+    @apply px-3 py-1;
+  }
+
+  &[type='submit'],
+  &[type='reset'],
+  &[type='button'] {
+    @apply appearance-none;
+  }
+
+  &.button--transparent {
+    background: transparent;
+    @apply bg-opacity-0 border-0 hover:bg-opacity-0;
+  }
+
+  &:disabled {
+    @apply opacity-50 cursor-not-allowed border-lime;
+  }
+
+  &.button--gray {
+    @apply bg-gray-500 border-gray-500 hover:bg-black text-white hover:border-black;
+
+    &:disabled {
+      @apply bg-gray-500 border-gray-500;
+    }
+  }
+
+  &.button--peach {
+    @apply bg-peach border-peach hover:border-black;
+
+    &:disabled {
+      @apply border-peach;
+    }
+  }
+
+  &.button--white {
+    @apply bg-white border-gray-300;
+  }
+
+  &.button--light-gray {
+    @apply bg-gray-150 border-gray-150 hover:border-black;
+    &:disabled {
+      @apply border-gray-150;
+    }
+  }
+
+  &.button--black {
+    @apply border-black bg-black hover:bg-black hover:border-white text-white hover:text-white;
+    &:disabled {
+      @apply border-black;
+    }
+  }
+
+  & a {
+    display: block;
+  }
+}
