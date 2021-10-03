@@ -7,9 +7,9 @@ const Layout = ({children}: {children: any}) => {
   return (
     <div className={styles.container}>
       <Head>
-        <title>Redirects</title>
-        <meta name="description" content="Redirect Management for Netlify" />
-        <link rel="icon" href="/favicon.ico" />
+        <title>Detour</title>
+        <meta name="description" content="Redirect management for .toml files" />
+        <link rel="icon" href="/favicon.png" />
       </Head>
       <main className={styles.main}>
         {children}

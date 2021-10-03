@@ -137,19 +137,22 @@ const Home = ({ repo }: { repo: any }): JSX.Element => {
 
   return (
     <>
-      <div className='flex items-center'>
-        <Detour size='xl' colorClassName='text-yellow-500'  />
-        <h1 className='font-bold text-5xl'>
-           Detour
-        </h1>
-      </div>
-      <h2 className='text-2xl'>{repo.name.toUpperCase()}</h2>
-      <h3 className='text-xl'>{repo.description}</h3>
-      <div className='flex justify-end my-8'>
-      <Button
-        disabled={isEditing}
-        onClick={() => activeForm ?
-          setActiveForm(null) : setActiveForm('new')}
+      <div className='flex items-end justify-between mb-10'>
+        <div>
+          <div className='flex items-center'>
+            <Detour size='xl' colorClassName='text-yellow-500'  />
+            <h1 className='font-bold text-5xl'>
+              Detour
+            </h1>
+          </div>
+          <h2 className='pl-10 text-2xl'>{repo.name.toUpperCase()}</h2>
+          <h3 className='pl-10'>{repo.description}</h3>
+        </div>
+        <Button
+          disabled={isEditing}
+          onClick={() => activeForm ?
+            setActiveForm(null) : setActiveForm('new')
+          }
         >
           {activeForm
             ? `- Cancel ${activeForm !== 'new' ? 'Update' : 'New'} Redirect`
