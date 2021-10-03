@@ -11,6 +11,7 @@ import Button from "../components/Button";
 import AddRedirectForm from "../components/AddRedirectForm";
 import Loader from "../components/Loader";
 import Detour from "../components/icons/Detour";
+import Pencil from "../components/icons/Pencil";
 import ConfirmButton from "../components/ConfirmButton";
 
 // GITHUB v4 requires an API key
@@ -119,11 +120,13 @@ const Home = ({ repo }: { repo: any }): JSX.Element => {
         <div key={`actions-${i}`} className='flex items-center justify-end'>
           <Button
             size='small'
-            color={isEditing && activeForm === i ? 'black' : 'white'}
+            color={isEditing && activeForm === i ? 'black' : 'transparent'}
             onClick={() => isEditing && activeForm === i ?
               setActiveForm(null) : handleEdit(i)}
+            title={isEditing && activeForm === i ? 'Cancel' : 'Edit'}
           >
-            {isEditing && activeForm === i ? 'Cancel' : 'Edit'}
+            <span className='sr-only'>{isEditing && activeForm === i ? 'Cancel' : 'Edit'}</span>
+            <Pencil />
           </Button>
           <ConfirmButton onConfirmClick={() => handleDelete(i)} />
         </div>
@@ -164,6 +167,7 @@ const Home = ({ repo }: { repo: any }): JSX.Element => {
         <AddRedirectForm
           data={redirects[activeForm]}
           onSubmit={handleSubmit}
+          onCancel={() => setActiveForm(null)}
         />
       }
       <Table

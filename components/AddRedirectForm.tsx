@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import Button from "./Button";
 import TextInput from './TextInput';
+import Check from './icons/Check';
+import Close from './icons/Close';
 
-const AddRedirectForm = ({data, onSubmit}) => {
+const AddRedirectForm = ({data, onSubmit, onCancel}) => {
   const [formData, setFormData] = useState({from: '', to: '', status: '301'});
   const [dirtyFields, setDirtyFields] = useState<string[]>([]);
 
@@ -60,8 +62,20 @@ const AddRedirectForm = ({data, onSubmit}) => {
         value={formData.status}
         disabled
       />
-      <div className='py-6'>
-        <Button type='submit' disabled={!dirtyFields.length || !formData.from.length || !formData.to.length}>{data ? 'Update' : 'Add'} Redirect</Button>
+      <div className='flex flex-row-reverse py-6'>
+        <Button
+          type='submit'
+          color='transparent'
+          title='Save redirect'
+          disabled={!dirtyFields.length || !formData.from.length || !formData.to.length}
+        >
+          <span className='sr-only'>{data ? 'Update' : 'Add'} Redirect</span>
+          <Check colorClassName='text-green-500' />
+        </Button>
+        <Button color='transparent' onClick={onCancel} title='Cancel'>
+          <span className='sr-only'>Cancel</span>
+          <Close colorClassName='text-red-400' />
+        </Button>
       </div>
     </form>
   )
