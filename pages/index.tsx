@@ -152,6 +152,13 @@ const Home = ({ repo }: { repo: any }): JSX.Element => {
           <h3 className='pl-10'>{repo.description}</h3>
         </div>
         <Button
+          // disabled={isEditing}
+          onClick={() => window.netlifyIdentity.open()
+          }
+        >
+          Login With Netlify Identity
+        </Button>
+        <Button
           disabled={isEditing}
           onClick={() => activeForm ?
             setActiveForm(null) : setActiveForm('new')

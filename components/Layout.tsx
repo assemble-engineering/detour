@@ -10,6 +10,7 @@ const Layout = ({children}: {children: any}) => {
         <title>Detour</title>
         <meta name="description" content="Redirect management for .toml files" />
         <link rel="icon" href="/favicon.png" />
+        <script type="text/javascript" src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
       </Head>
       <main className={styles.main}>
         {children}
