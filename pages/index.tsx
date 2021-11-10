@@ -13,6 +13,7 @@ import Loader from "../components/Loader";
 import Detour from "../components/icons/Detour";
 import Pencil from "../components/icons/Pencil";
 import ConfirmButton from "../components/ConfirmButton";
+import NetlifyIdentity from "../components/NetlifyIdentity";
 
 // GITHUB v4 requires an API key
 // See: https://github.community/t5/GitHub-API-Development-and/API-v4-Permit-access-without-token/td-p/20357
@@ -151,6 +152,7 @@ const Home = ({ repo }: { repo: any }): JSX.Element => {
           <h2 className='pl-10 text-2xl'>{repo.name.toUpperCase()}</h2>
           <h3 className='pl-10'>{repo.description}</h3>
         </div>
+        <NetlifyIdentity/>
         <Button
           disabled={isEditing}
           onClick={() => activeForm ?
