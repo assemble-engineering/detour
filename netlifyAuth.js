@@ -15,8 +15,8 @@ const netlifyAuth = {
     netlifyIdentity.open()
     netlifyIdentity.on('login', (user) => {
       this.user = user
-      callback(user)
       netlifyIdentity.close()
+      callback(user)
     })
   },
   signout(callback) {
@@ -27,6 +27,7 @@ const netlifyAuth = {
       callback()
     })
   },
+
 }
 
 export default netlifyAuth

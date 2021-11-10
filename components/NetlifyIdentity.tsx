@@ -1,8 +1,13 @@
 import { useEffect, useState } from "react";
 import netlifyAuth from '../netlifyAuth.js';
+import Button from "../components/Button";
 
-const NetlifyIdentity = () => {
-  let [loggedIn, setLoggedIn] = useState(netlifyAuth.isAuthenticated)
+type Props ={
+  loggedIn: any 
+  setLoggedIn: any
+}
+
+const NetlifyIdentity = ({loggedIn, setLoggedIn}: Props) => {
   let [user, setUser] = useState(null)
   
   useEffect(() => {
@@ -28,16 +33,15 @@ const NetlifyIdentity = () => {
   }
 
   return loggedIn ? (
-    <div>
-      you are logged in
-      <button onClick={logout}>
-      Logout
-    </button>
+    <div className="pb-2 self-end">
+      <Button onClick={logout} color="light-gray" size="small">
+        Logout
+      </Button>
     </div>
   ): (
-    <button onClick={login}>
-      Log in here.
-    </button>
+    <Button onClick={login}>
+      Login
+    </Button>
   )
 }
 export default NetlifyIdentity;
