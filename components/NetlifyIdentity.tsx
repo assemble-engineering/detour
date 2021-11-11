@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import netlifyAuth from '../netlifyAuth.js';
 import Button from "../components/Button";
+import netlifyIdentity from "netlify-identity-widget";
 
 type Props ={
   loggedIn: any 
@@ -8,7 +9,7 @@ type Props ={
 }
 
 const NetlifyIdentity = ({loggedIn, setLoggedIn}: Props) => {
-  let [user, setUser] = useState(null)
+const [user, setUser] = useState(null)
   
   useEffect(() => {
     netlifyAuth.initialize((user) => {
@@ -31,12 +32,20 @@ const NetlifyIdentity = ({loggedIn, setLoggedIn}: Props) => {
       setUser(null)
     })
   }
+  let openModal = () => {
+    netlifyIdentity.open();
+  }
+  let logoutMenu = () => {
+    return (
+      <button onClick={openModal}>
+        {netlifyIdentity.currentUser().email}
+      </button>
+    )
+  }
 
   return loggedIn ? (
     <div className="pb-2 self-end">
-      <Button onClick={logout} color="light-gray" size="small">
-        Logout
-      </Button>
+      {logoutMenu()}
     </div>
   ): (
     <Button onClick={login}>
