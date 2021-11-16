@@ -138,7 +138,7 @@ const Home = ({ repo }: { repo: any }): JSX.Element => {
       ]
       ))
     }
-  const logo = () => {
+  const renderLogo = () => {
     return (
       <div>
           <div className='flex items-center'>
@@ -156,10 +156,10 @@ const Home = ({ repo }: { repo: any }): JSX.Element => {
   if (!redirects) {
     return <Loader message='Loading...' />
   }
-  return (loggedIn) ? (
-    <>
+  else if (loggedIn) {
+    return (    <>
       <div className='flex items-end justify-between mb-10'>
-        {logo()}
+        {renderLogo()}
         <div>
           <NetlifyIdentity loggedIn={loggedIn} setLoggedIn={setLoggedIn}/>
           <Button
@@ -186,15 +186,17 @@ const Home = ({ repo }: { repo: any }): JSX.Element => {
         headers={['From', 'To', 'Status', '']}
         rows={getRows()}
       />
-    </>
-  ): (
-    <>
-      <div className='flex items-end justify-between mb-10'>
-        {logo()}
-        <NetlifyIdentity loggedIn={loggedIn} setLoggedIn={setLoggedIn}/>
-      </div>
-    </>
-  );
+    </>);
+  }else {
+    return (
+        <div className='flex items-end justify-between mb-10'>
+          {renderLogo()}
+          <NetlifyIdentity loggedIn={loggedIn} setLoggedIn={setLoggedIn}/>
+        </div>
+    
+      );
+  }
+  
 }
 
 export default Home;

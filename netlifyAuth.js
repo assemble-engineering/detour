@@ -19,14 +19,6 @@ const netlifyAuth = {
       callback(user)
     })
   },
-  signout(callback) {
-    this.isAuthenticated = false
-    netlifyIdentity.logout()
-    netlifyIdentity.on('logout', () => {
-      this.user = null
-      callback()
-    })
-  },
 
 }
 
