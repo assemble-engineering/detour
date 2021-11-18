@@ -157,7 +157,8 @@ const Home = ({ repo }: { repo: any }): JSX.Element => {
     return <Loader message='Loading...' />
   }
   else if (loggedIn) {
-    return (    <>
+    return (    
+    <>
       <div className='flex items-end justify-between mb-10'>
         {renderLogo()}
         <div>
@@ -187,16 +188,13 @@ const Home = ({ repo }: { repo: any }): JSX.Element => {
         rows={getRows()}
       />
     </>);
-  }else {
-    return (
-        <div className='flex items-end justify-between mb-10'>
-          {renderLogo()}
-          <NetlifyIdentity loggedIn={loggedIn} setLoggedIn={setLoggedIn}/>
-        </div>
-    
-      );
   }
-  
+  return (
+      <div className='flex items-end justify-between mb-10'>
+        {renderLogo()}
+        <NetlifyIdentity loggedIn={loggedIn} setLoggedIn={setLoggedIn}/>
+      </div>
+    );
 }
 
 export default Home;
