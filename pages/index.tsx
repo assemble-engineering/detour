@@ -13,6 +13,8 @@ import Loader from "../components/Loader";
 import Detour from "../components/icons/Detour";
 import Pencil from "../components/icons/Pencil";
 import ConfirmButton from "../components/ConfirmButton";
+import NetlifyIdentity from "../components/NetlifyIdentity";
+import netlifyAuth from "../netlifyAuth";
 
 // GITHUB v4 requires an API key
 // See: https://github.community/t5/GitHub-API-Development-and/API-v4-Permit-access-without-token/td-p/20357
@@ -64,7 +66,10 @@ type RedirectType = {
 
 const Home = ({ repo }: { repo: any }): JSX.Element => {
   const { data, mutate: refetchFile } = useSWR('api/get-file', fetcher);
+
   const [activeForm, setActiveForm] = useState(null);
+  const [loggedIn, setLoggedIn] = useState(netlifyAuth.isAuthenticated)
+
   const base64 = data?.data.content;
   const tomlString = base64 && atob(base64);
   const json = tomlString && toml.parse(tomlString);
@@ -133,15 +138,9 @@ const Home = ({ repo }: { repo: any }): JSX.Element => {
       ]
       ))
     }
-
-  if (!redirects) {
-    return <Loader message='Loading...' />
-  }
-
-  return (
-    <>
-      <div className='flex items-end justify-between mb-10'>
-        <div>
+  const renderLogo = () => {
+    return (
+      <div>
           <div className='flex items-center'>
             <Detour size='xl' colorClassName='text-yellow-500'  />
             <h1 className='font-bold text-5xl'>
@@ -151,17 +150,31 @@ const Home = ({ repo }: { repo: any }): JSX.Element => {
           <h2 className='pl-10 text-2xl'>{repo.name.toUpperCase()}</h2>
           <h3 className='pl-10'>{repo.description}</h3>
         </div>
-        <Button
-          disabled={isEditing}
-          onClick={() => activeForm ?
-            setActiveForm(null) : setActiveForm('new')
-          }
-        >
-          {activeForm
-            ? `- Cancel ${activeForm !== 'new' ? 'Update' : 'New'} Redirect`
-            : '+ New Redirect'
-          }
-        </Button>
+    );
+  }
+
+  if (!redirects) {
+    return <Loader message='Loading...' />
+  }
+  else if (loggedIn) {
+    return (    
+    <>
+      <div className='flex items-end justify-between mb-10'>
+        {renderLogo()}
+        <div>
+          <NetlifyIdentity loggedIn={loggedIn} setLoggedIn={setLoggedIn}/>
+          <Button
+            disabled={isEditing}
+            onClick={() => activeForm ?
+              setActiveForm(null) : setActiveForm('new')
+            }
+          >
+            {activeForm
+              ? `- Cancel ${activeForm !== 'new' ? 'Update' : 'New'} Redirect`
+              : '+ New Redirect'
+            }
+          </Button>
+        </div>
       </div>
       {activeForm !== null &&
         <AddRedirectForm
@@ -174,8 +187,14 @@ const Home = ({ repo }: { repo: any }): JSX.Element => {
         headers={['From', 'To', 'Status', '']}
         rows={getRows()}
       />
-    </>
-  );
+    </>);
+  }
+  return (
+      <div className='flex items-end justify-between mb-10'>
+        {renderLogo()}
+        <NetlifyIdentity loggedIn={loggedIn} setLoggedIn={setLoggedIn}/>
+      </div>
+    );
 }
 
 export default Home;
