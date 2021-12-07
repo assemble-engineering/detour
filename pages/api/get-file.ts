@@ -47,8 +47,6 @@ const getFile = async (
     branchFileData: branchFileData
   }
   res.status(200).json({ data: data });
-  // @ts-ignore
-  return data;
 };
 
 export default getFile;

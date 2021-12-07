@@ -92,17 +92,14 @@ const Home = ({ repo }: { repo: any }): JSX.Element => {
     const updatedToml= toml.stringify(branchJson);
     const base64EncodedToml = btoa(updatedToml);
     const branch = data?.data.branchData[0].url.split('/')
-    console.log('sha',data?.data.repoData.sha)
     const body = {
       message: "Update redirects",
       content: `${base64EncodedToml}`,
       sha: `${data?.data.branchFileData.sha}`,
       branch: branch[branch.length - 1]
     };
-    console.log(body)
     // @ts-ignore
     fetch('/api/save-file', { method: 'PUT', body: JSON.stringify(body) }).then((resp) => {
-      console.log(resp)
       refetchFile();
       setActiveForm(null);
     })
@@ -121,7 +118,6 @@ const Home = ({ repo }: { repo: any }): JSX.Element => {
 
   const handleSubmit = (formData) => {
     const updatedJson = {...branchJson};
-    console.log('active form',activeForm)
     if (activeForm !== 'new') {
       // @ts-ignore
       updatedJson.redirects.splice(activeForm, 1, {to: formData.to, from: formData.from, status: formData.status})
