@@ -17,7 +17,8 @@ const newPull = async (
   res: NextApiResponse
 ): Promise<void> => {
   await cors(req, res);
-  req.body = {//TEMPORARY
+  // TODO: implement a way to name the new branch
+  req.body = {
     title: "Update Redirects title",
     head: "a-new-branch",
     base: "main",
@@ -35,8 +36,7 @@ const newPull = async (
     sha: 'headSha',//SHA that pull request head must match to allow merge.
     merge_method: 'merge',//Possible values are merge, squash or rebase. Default is merge
   }
-  response = await putter(`/repos/${env.githubOwner}/${env.githubRepo}/pulls/${pullNumber}/merge`, 'PUT', {});
-  data = await response;
+  data = await putter(`/repos/${env.githubOwner}/${env.githubRepo}/pulls/${pullNumber}/merge`, 'PUT', {});
 
   res.status(200).json({ data: data });
 };

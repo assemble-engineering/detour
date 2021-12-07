@@ -118,6 +118,7 @@ const Home = ({ repo }: { repo: any }): JSX.Element => {
 
   const handleSubmit = (formData) => {
     const updatedJson = {...branchJson};
+    // TODO: typescript type assertion
     if (activeForm !== 'new') {
       // @ts-ignore
       updatedJson.redirects.splice(activeForm, 1, {to: formData.to, from: formData.from, status: formData.status})
@@ -206,7 +207,7 @@ const Home = ({ repo }: { repo: any }): JSX.Element => {
             }
           </Button>
           <button onClick={mergePull}>
-            merge pull
+            Merge pull
           </button>
         </div>
       </div>
@@ -218,7 +219,7 @@ const Home = ({ repo }: { repo: any }): JSX.Element => {
         />
       }
       <Table
-        headers={['Merged','From', 'To', 'Status', '']}
+        headers={['Status','From', 'To', 'Status', '']}
         rows={getRows()}
       />
     </>);

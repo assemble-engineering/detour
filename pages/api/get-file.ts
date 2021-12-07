@@ -18,11 +18,12 @@ const getFile = async (
   res: NextApiResponse
 ): Promise<void> => {
   await cors(req, res);
-  let response = await fetcher(`/repos/${env.githubOwner}/${env.githubRepo}/contents/${env.filePath}`);
-  const repoData = await response;
+  // TODO: use promise.all to make all these calls in one promise
+  const responseRepo = await fetcher(`/repos/${env.githubOwner}/${env.githubRepo}/contents/${env.filePath}`);
+  const repoData = await responseRepo;
 
-  response = await fetcher(`/repos/${env.githubOwner}/${env.githubRepo}/git/refs/heads/main`);
-  let mainData = await response;
+  const responseMain = await fetcher(`/repos/${env.githubOwner}/${env.githubRepo}/git/refs/heads/main`);
+  let mainData = await responseMain;
   const mainSha = mainData.object.sha;
   const body = {
     ref: "refs/heads/a-new-branch",
@@ -30,15 +31,15 @@ const getFile = async (
   }
 
   // get or create branch
-  response = await poster(`/repos/${env.githubOwner}/${env.githubRepo}/git/refs`, 'POST', body);
-  let branchData = await response;
+  let responseBranch = await poster(`/repos/${env.githubOwner}/${env.githubRepo}/git/refs`, 'POST', body);
+  let branchData = await responseBranch;
   if (branchData.message == "Reference already exists") {
-    response = await fetcher(`/repos/${env.githubOwner}/${env.githubRepo}/git/matching-refs/heads/a-new-branch`);
-    branchData = await response;
+    responseBranch = await fetcher(`/repos/${env.githubOwner}/${env.githubRepo}/git/matching-refs/heads/a-new-branch`);
+    branchData = await responseBranch;
   }
 
-  response = await fetcher(`/repos/${env.githubOwner}/${env.githubRepo}/contents/${env.filePath}?ref=a-new-branch`);
-  const branchFileData = await response;
+  const responseBranchFile = await fetcher(`/repos/${env.githubOwner}/${env.githubRepo}/contents/${env.filePath}?ref=a-new-branch`);
+  const branchFileData = await responseBranchFile;
 
   const data = {
     repoData: repoData,
