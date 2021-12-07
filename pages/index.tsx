@@ -6,6 +6,8 @@ import env from '../env';
 import atob from 'atob';
 import btoa from 'btoa';
 import toml from '@iarna/toml';
+import netlifyAuth from "../netlifyAuth";
+
 import Table from "../components/Table";
 import Button from "../components/Button";
 import AddRedirectForm from "../components/AddRedirectForm";
@@ -14,7 +16,7 @@ import Detour from "../components/icons/Detour";
 import Pencil from "../components/icons/Pencil";
 import ConfirmButton from "../components/ConfirmButton";
 import NetlifyIdentity from "../components/NetlifyIdentity";
-import netlifyAuth from "../netlifyAuth";
+
 
 // GITHUB v4 requires an API key
 // See: https://github.community/t5/GitHub-API-Development-and/API-v4-Permit-access-without-token/td-p/20357
@@ -70,28 +72,44 @@ const Home = ({ repo }: { repo: any }): JSX.Element => {
   const [activeForm, setActiveForm] = useState(null);
   const [loggedIn, setLoggedIn] = useState(netlifyAuth.isAuthenticated)
 
-  const base64 = data?.data.content;
+  const base64 = data?.data.repoData.content;
   const tomlString = base64 && atob(base64);
   const json = tomlString && toml.parse(tomlString);
   const redirects = json?.redirects;
 
-  const prepareAndSend = (json) => {
-    const updatedToml= toml.stringify(json);
+  const branchBase64 = data?.data.branchFileData.content;
+  const branchTomlString = branchBase64 && atob(branchBase64);
+  const branchJson = branchTomlString && toml.parse(branchTomlString);
+  const branchRedirects = branchJson?.redirects;
+  const mergePull = () => {
+    fetch('/api/new-pull', { method: 'POST' }).then((resp) => {
+      refetchFile();
+      setActiveForm(null);
+    })
+  }
+
+  const prepareAndSend = (branchJson) => {
+    const updatedToml= toml.stringify(branchJson);
     const base64EncodedToml = btoa(updatedToml);
+    const branch = data?.data.branchData[0].url.split('/')
+    console.log('sha',data?.data.repoData.sha)
     const body = {
       message: "Update redirects",
       content: `${base64EncodedToml}`,
-      sha: `${data?.data.sha}`
+      sha: `${data?.data.branchFileData.sha}`,
+      branch: branch[branch.length - 1]
     };
+    console.log(body)
     // @ts-ignore
-    fetch('/api/save-file', { method: 'PUT', body: JSON.stringify(body) }).then(() => {
+    fetch('/api/save-file', { method: 'PUT', body: JSON.stringify(body) }).then((resp) => {
+      console.log(resp)
       refetchFile();
       setActiveForm(null);
     })
   }
 
   const handleDelete = (i: number) => {
-    const updatedJson = {...json};
+    const updatedJson = {...branchJson};
     // @ts-ignore
     updatedJson.redirects.splice(i, 1);
     prepareAndSend(updatedJson);
@@ -102,7 +120,8 @@ const Home = ({ repo }: { repo: any }): JSX.Element => {
   }
 
   const handleSubmit = (formData) => {
-    const updatedJson = {...json};
+    const updatedJson = {...branchJson};
+    console.log('active form',activeForm)
     if (activeForm !== 'new') {
       // @ts-ignore
       updatedJson.redirects.splice(activeForm, 1, {to: formData.to, from: formData.from, status: formData.status})
@@ -117,8 +136,16 @@ const Home = ({ repo }: { repo: any }): JSX.Element => {
 
   const getRows = () => {
     // @ts-ignore
-    return redirects.map((redirect: RedirectType, i: number) => (
-      [
+    var unmergedRediects = branchRedirects.filter((obj) => {
+      // @ts-ignore
+      return !redirects.some((obj2) => {
+          return (obj.to == obj2.to && obj.from == obj2.from);
+      });
+    });
+    // @ts-ignore
+    const tableRows = (i, redirect, isMerged) => {
+      return [
+        <div className={`rounded-full w-5 h-5 ${isMerged ? 'bg-green-500' : 'bg-yellow-300' }`}></div>,
         <p key={`from-${i}`}>{redirect.from}</p>,
         <p key={`to-${i}`}>{redirect.to}</p>,
         <p key={`status-${i}`}>{redirect.status}</p>,
@@ -136,7 +163,15 @@ const Home = ({ repo }: { repo: any }): JSX.Element => {
           <ConfirmButton onConfirmClick={() => handleDelete(i)} />
         </div>
       ]
+    }
+    // @ts-ignore
+    const merged =  redirects.map((redirect: RedirectType, i: number) => (
+        tableRows(i,redirect, true)
       ))
+    const unmerged = unmergedRediects.map((redirect: RedirectType, i: number) => (
+        tableRows(i,redirect, false)
+      ))
+    return unmerged.concat(merged)
     }
   const renderLogo = () => {
     return (
@@ -174,6 +209,9 @@ const Home = ({ repo }: { repo: any }): JSX.Element => {
               : '+ New Redirect'
             }
           </Button>
+          <button onClick={mergePull}>
+            merge pull
+          </button>
         </div>
       </div>
       {activeForm !== null &&
@@ -184,7 +222,7 @@ const Home = ({ repo }: { repo: any }): JSX.Element => {
         />
       }
       <Table
-        headers={['From', 'To', 'Status', '']}
+        headers={['Merged','From', 'To', 'Status', '']}
         rows={getRows()}
       />
     </>);
