@@ -1,7 +1,7 @@
 import Cors from 'cors';
 import initMiddleware from '../../utils/initMiddleware';
 import { NextApiRequest, NextApiResponse } from 'next';
-import {fetcher, poster} from '../../lib/api/rest-client';
+import { fetcher, poster } from '../../lib/api/rest-client';
 import env from '../../env';
 
 // Initialize the cors middleware
@@ -18,14 +18,20 @@ const createBranch = async (
   res: NextApiResponse
 ): Promise<void> => {
   await cors(req, res);
-  let response = await fetcher(`/repos/${env.githubOwner}/${env.githubRepo}/git/refs/heads/main`);
+  let response = await fetcher(
+    `/repos/${env.githubOwner}/${env.githubRepo}/git/refs/heads/main`
+  );
   let data = await response;
   const mainSha = data.object.sha;
   const body = {
-    ref: "refs/heads/a-new-branch",
-    sha: mainSha
-  }
-  response = await poster(`/repos/${env.githubOwner}/${env.githubRepo}/git/refs`, 'POST', body);
+    ref: 'refs/heads/a-new-branch',
+    sha: mainSha,
+  };
+  response = await poster(
+    `/repos/${env.githubOwner}/${env.githubRepo}/git/refs`,
+    'POST',
+    body
+  );
   data = await response;
 
   res.status(200).json({ data: data });

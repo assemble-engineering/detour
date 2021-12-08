@@ -1,7 +1,6 @@
 import { DetailedHTMLProps, ButtonHTMLAttributes, createElement } from 'react';
 import classNames from 'classnames';
-// @ts-ignore
-import * as styles from '../styles/Button.module.scss';
+import styles from '../styles/Button.module.scss';
 
 /**
  * Button component
@@ -23,7 +22,7 @@ export interface ButtonProps
 }
 
 const Button = ({
-  as,
+  as = 'button',
   onClick,
   type,
   href,
@@ -39,11 +38,10 @@ const Button = ({
   title,
 }: ButtonProps): JSX.Element => {
   const buttonClasses = [
-    // @ts-ignore
     styles.button,
     color && styles[`button--${color}`],
     size && styles[`button--${size}`],
-    className && className
+    className && className,
   ];
   return createElement(
     as,

@@ -18,7 +18,11 @@ const saveFile = async (
   res: NextApiResponse
 ): Promise<void> => {
   await cors(req, res);
-  const response = await putter(`/repos/${env.githubOwner}/${env.githubRepo}/contents/${env.filePath}`, 'PUT', req.body);
+  const response = await putter(
+    `/repos/${env.githubOwner}/${env.githubRepo}/contents/${env.filePath}`,
+    'PUT',
+    req.body
+  );
   const data = await response;
 
   res.status(200).json({ data: data });
