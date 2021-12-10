@@ -34,9 +34,7 @@ export type TextInputProps = {
   // optional class styling override of label
   labelClassName?: string;
   // listener for onChange of textinput
-  onChange?: (
-    value: string
-  ) => void;
+  onChange?: (value: string) => void;
   // Adds side effect handler for clicking on an input
   onClick?: (event: MouseEvent) => void;
   onBlur?: (

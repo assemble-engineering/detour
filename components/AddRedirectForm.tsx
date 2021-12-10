@@ -1,16 +1,27 @@
-import { useEffect, useState } from "react";
-import Button from "./Button";
+import React, { useEffect, useState } from 'react';
+import Button from './Button';
 import TextInput from './TextInput';
 import Check from './icons/Check';
 import Close from './icons/Close';
+import { RedirectType } from '../types';
 
-const AddRedirectForm = ({data, onSubmit, onCancel}) => {
-  const [formData, setFormData] = useState({from: '', to: '', status: '301'});
+type AddRedirectFormProps = {
+  data?: RedirectType;
+  onSubmit: (formData: RedirectType) => void;
+  onCancel: () => void;
+};
+
+const AddRedirectForm = ({
+  data,
+  onSubmit,
+  onCancel,
+}: AddRedirectFormProps) => {
+  const [formData, setFormData] = useState({ from: '', to: '', status: '301' });
   const [dirtyFields, setDirtyFields] = useState<string[]>([]);
 
   useEffect(() => {
     if (data) {
-      setFormData({from: data.from, to: data.to, status: data.status})
+      setFormData({ from: data.from, to: data.to, status: data.status });
     }
   }, [data]);
 
@@ -22,11 +33,10 @@ const AddRedirectForm = ({data, onSubmit, onCancel}) => {
     setFormData(newData);
   };
 
-  const handleSubmit = e => {
+  const handleSubmit: React.FormEventHandler = e => {
     e.preventDefault();
-
     onSubmit(formData);
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit} className='flex align-top w-full py-4'>
@@ -39,7 +49,9 @@ const AddRedirectForm = ({data, onSubmit, onCancel}) => {
         onChange={(value: string) => handleChange('from', value)}
         value={formData.from}
       >
-        {dirtyFields.includes('from') && formData.from.length === 0 && <p className='text-red-500'>This field is required</p>}
+        {dirtyFields.includes('from') && formData.from.length === 0 && (
+          <p className='text-red-500'>This field is required</p>
+        )}
       </TextInput>
       <TextInput
         id='to'
@@ -50,7 +62,9 @@ const AddRedirectForm = ({data, onSubmit, onCancel}) => {
         onChange={(value: string) => handleChange('to', value)}
         value={formData.to}
       >
-        {dirtyFields.includes('to') && formData.to.length === 0 && <p className='text-red-500'>This field is required</p>}
+        {dirtyFields.includes('to') && formData.to.length === 0 && (
+          <p className='text-red-500'>This field is required</p>
+        )}
       </TextInput>
       <TextInput
         id='status'
@@ -67,7 +81,9 @@ const AddRedirectForm = ({data, onSubmit, onCancel}) => {
           type='submit'
           color='transparent'
           title='Save redirect'
-          disabled={!dirtyFields.length || !formData.from.length || !formData.to.length}
+          disabled={
+            !dirtyFields.length || !formData.from.length || !formData.to.length
+          }
         >
           <span className='sr-only'>{data ? 'Update' : 'Add'} Redirect</span>
           <Check colorClassName='text-green-500' />
@@ -78,7 +94,7 @@ const AddRedirectForm = ({data, onSubmit, onCancel}) => {
         </Button>
       </div>
     </form>
-  )
-}
+  );
+};
 
 export default AddRedirectForm;

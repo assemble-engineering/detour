@@ -2,29 +2,19 @@
   "compilerOptions": {
     "target": "ES2019",
     "module": "esnext",
-    "baseUrl": "./src",
+    "baseUrl": "/",
     "paths": {
-      "buttons/*": [
-        "components/buttons/*"
-      ],
-      "inputs/*": [
-        "components/inputs/*"
-      ],
-      "typography/*": [
-        "components/typography/*"
-      ]
+      "buttons/*": ["components/buttons/*"],
+      "inputs/*": ["components/inputs/*"],
+      "typography/*": ["components/typography/*"]
     },
     "outDir": "dist",
     "jsx": "preserve",
     "moduleResolution": "node",
     "allowJs": true,
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "ES2019"
-    ],
+    "lib": ["dom", "dom.iterable", "ES2019"],
     "skipLibCheck": true,
-    "strict": false,
+    "strict": true,
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "esModuleInterop": true,
@@ -34,13 +24,6 @@
     "noFallthroughCasesInSwitch": true,
     "incremental": true
   },
-  "include": [
-    "*.tsx",
-    "./src/**/*",
-    "*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "*.js"
-  ]
+  "include": ["*.tsx", "./**/*", "*.ts"],
+  "exclude": ["node_modules", "*.js"]
 }

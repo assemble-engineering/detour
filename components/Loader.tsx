@@ -1,8 +1,7 @@
 import React from 'react';
-// @ts-ignore
-import * as styles from '../styles/Loader.module.scss';
+import styles from '../styles/Loader.module.scss';
 
-const Loader = ({ style, message }: {style?: any, message?: string}) => {
+const Loader = ({ style, message }: { style?: any; message?: string }) => {
   const renderBars = () => {
     const bars = [];
     for (let i = 0; i < 12; i = i + 1) {
@@ -19,9 +18,7 @@ const Loader = ({ style, message }: {style?: any, message?: string}) => {
 
   return (
     <div className={styles.loader} style={style}>
-      <div className={styles.loaderbars}>
-        {renderBars()}
-      </div>
+      <div className={styles.loaderbars}>{renderBars()}</div>
       {message && <p className={styles.message}>{message}</p>}
     </div>
   );
