@@ -1,22 +1,20 @@
-import { useState } from "react";
-import client from "../lib/api/apollo-client";
-import { gql } from "@apollo/client";
-import useSWR from "swr";
-import env from "../env";
-import atob from "atob";
-import btoa from "btoa";
-import toml from "@iarna/toml";
-import netlifyAuth from "../netlifyAuth";
-
-import Table from "../components/Table";
-import Button from "../components/Button";
-import AddRedirectForm from "../components/AddRedirectForm";
-import Loader from "../components/Loader";
-import Detour from "../components/icons/Detour";
-import Pencil from "../components/icons/Pencil";
-import ConfirmButton from "../components/ConfirmButton";
-import NetlifyIdentity from "../components/NetlifyIdentity";
-import { BranchJSON, RedirectType } from "../types";
+import { useCallback, useMemo, useReducer } from 'react';
+import client from '../lib/api/apollo-client';
+import { gql } from '@apollo/client';
+import useSWR from 'swr';
+import env from '../env';
+import btoa from 'btoa';
+import Table from '../components/Table/index';
+import AddRedirectForm from '../components/AddRedirectForm';
+import Loader from '../components/Loader';
+import { BranchJSON, RedirectType } from '../types';
+import toml from '@iarna/toml';
+import { GetFileResponse } from './api/get-file';
+import { v4 as uuid } from 'uuid';
+import { Column, useGlobalFilter, usePagination, useSortBy, useTable } from 'react-table';
+import TableControls from '../components/Table/TableControls';
+import redirectsAreEqual from '../utils/redirectsAreEqual';
+import PublishedModal from '../components/PublishedModal';
 
 // GITHUB v4 requires an API key
 // See: https://github.community/t5/GitHub-API-Development-and/API-v4-Permit-access-without-token/td-p/20357
@@ -24,7 +22,6 @@ import { BranchJSON, RedirectType } from "../types";
 
 // NETLIFY REDIRECTS DOCUMENTATION
 // https://docs.netlify.com/routing/redirects
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const repoDetailsQuery = gql`
   query repository($owner: String!, $name: String!) {
@@ -44,6 +41,212 @@ const repoDetailsQuery = gql`
   }
 `;
 
+export type State = {
+  mainBranchTomlJson: BranchJSON;
+  workingBranchTomlJson: BranchJSON;
+  mainBranchSha: string | null;
+  workingBranchSha: string | null;
+  redirects: RedirectType[];
+  updatesMade: boolean;
+  isEditing: boolean;
+  redirectFormData: RedirectType;
+  unmergedChanges: boolean;
+  saving: boolean;
+  showPublishedModal: boolean;
+};
+
+export type Action =
+  | { type: 'DATA_FETCH_START' }
+  | { type: 'DATA_FETCH_END'; newData: GetFileResponse }
+  | { type: 'OPEN_NEW_REDIRECT_FORM'; id: string }
+  | { type: 'EDIT_NEW_REDIRECT_FORM'; newData: RedirectType }
+  | { type: 'EDIT_REDIRECT'; newData: RedirectType }
+  | { type: 'SAVE_NEW_REDIRECT' }
+  | { type: 'CANCEL_EDIT' }
+  | { type: 'ADD_REDIRECT' }
+  | { type: 'DELETE_REDIRECT'; id: string }
+  | { type: 'RESTORE_REDIRECT'; id: string }
+  | { type: 'START_SAVING' }
+  | { type: 'END_SAVING' }
+  | { type: 'SHOW_PUBLISHED_MODAL' }
+  | { type: 'CLOSE_PUBLISHED_MODAL' };
+
+const reducer = (state: State, action: Action): State => {
+  switch (action.type) {
+    case 'DATA_FETCH_START': {
+      return {
+        ...state,
+      };
+    }
+    case 'DATA_FETCH_END': {
+      const workingRedirects: RedirectType[] = action.newData.workingBranchTomlJson.redirects.map(redirect => {
+        const liveRedirect = action.newData.mainBranchTomlJson.redirects.find(
+          mainRedirect => mainRedirect.id === redirect.id
+        );
+
+        const status = !liveRedirect
+          ? redirect.mergeStatus
+          : redirectsAreEqual(redirect, liveRedirect)
+          ? redirect.mergeStatus === 'DELETED'
+            ? 'DELETED'
+            : 'LIVE'
+          : 'UPDATED';
+
+        if (status === 'UPDATED') {
+          const stateRedirect = state.redirects.find(stateRedirect => stateRedirect.id === redirect.id);
+
+          if (stateRedirect) {
+            return {
+              ...stateRedirect,
+            };
+          }
+        }
+
+        return {
+          ...redirect,
+          id: redirect?.id || uuid(),
+          mergeStatus: status,
+        };
+      });
+
+      const newRedirects = state.redirects.filter(stateRedirect => {
+        const savedRedirect = action.newData.workingBranchTomlJson.redirects.find(
+          savedRedirect => savedRedirect.id === stateRedirect.id
+        );
+        if (savedRedirect || stateRedirect.mergeStatus === 'DELETED') {
+          return false;
+        }
+        return true;
+      });
+
+      const areUnmergedChanges =
+        workingRedirects.some(redirect => redirect.mergeStatus !== 'LIVE') || newRedirects.length > 0;
+
+      return {
+        ...state,
+        ...action.newData,
+        updatesMade: newRedirects.length > 0,
+        unmergedChanges: areUnmergedChanges,
+        redirects: [...newRedirects, ...workingRedirects],
+      };
+    }
+    case 'OPEN_NEW_REDIRECT_FORM': {
+      const updatedState: State = {
+        ...state,
+        isEditing: true,
+      };
+      const editRedirect = state.redirects.find(redirect => redirect.id === action.id);
+      if (editRedirect) {
+        updatedState.redirectFormData = { ...editRedirect };
+      }
+
+      return updatedState;
+    }
+    case 'EDIT_REDIRECT': {
+      const updatedRedirects = [...state.redirects];
+      const updatedRedirectIndex = updatedRedirects.findIndex(redirect => redirect.id === action.newData.id);
+      const redirectToUpdate = updatedRedirects[updatedRedirectIndex];
+      const updateMade = !redirectsAreEqual(redirectToUpdate, action.newData);
+      if (updateMade) {
+        updatedRedirects.splice(updatedRedirectIndex, 1, {
+          ...action.newData,
+          mergeStatus: action.newData.mergeStatus === 'NEW' ? 'NEW' : 'UPDATED',
+        });
+        return {
+          ...state,
+          updatesMade: true,
+          unmergedChanges: true,
+          redirects: updatedRedirects,
+        };
+      } else {
+        return state;
+      }
+    }
+    case 'EDIT_NEW_REDIRECT_FORM': {
+      return {
+        ...state,
+        redirectFormData: {
+          ...action.newData,
+        },
+      };
+    }
+    case 'SAVE_NEW_REDIRECT': {
+      const updatedRedirects: RedirectType[] = [{ ...state.redirectFormData, mergeStatus: 'NEW' }, ...state.redirects];
+      return {
+        ...state,
+        redirects: updatedRedirects,
+        updatesMade: true,
+        unmergedChanges: true,
+        isEditing: false,
+        redirectFormData: { from: '/', to: '/', status: 301, id: uuid(), mergeStatus: 'NEW' },
+      };
+    }
+    case 'CANCEL_EDIT': {
+      return {
+        ...state,
+        isEditing: false,
+      };
+    }
+    case 'ADD_REDIRECT': {
+      return {
+        ...state,
+        isEditing: true,
+        redirectFormData: {
+          to: '/',
+          from: '/',
+          status: 301,
+          mergeStatus: 'NEW',
+          id: uuid(),
+        },
+      };
+    }
+    case 'DELETE_REDIRECT': {
+      const updatedRedirects = [...state.redirects];
+      const deleteIndex = updatedRedirects.findIndex(redirect => redirect.id === action.id);
+      updatedRedirects.splice(deleteIndex, 1, { ...updatedRedirects[deleteIndex], mergeStatus: 'DELETED' });
+      return {
+        ...state,
+        redirects: updatedRedirects,
+        updatesMade: true,
+        unmergedChanges: true,
+      };
+    }
+    case 'RESTORE_REDIRECT': {
+      const updatedRedirects = [...state.redirects];
+      const restoreIndex = updatedRedirects.findIndex(redirect => redirect.id === action.id);
+      const existingRedirect = state.mainBranchTomlJson.redirects.find(redirect => redirect.id === action.id);
+      const updatedRedirect = { ...updatedRedirects[restoreIndex] };
+      if (existingRedirect && redirectsAreEqual(existingRedirect, updatedRedirect)) {
+        updatedRedirect.mergeStatus = 'LIVE';
+      } else {
+        updatedRedirect.mergeStatus = 'UPDATED';
+      }
+      updatedRedirects.splice(restoreIndex, 1, updatedRedirect);
+      return {
+        ...state,
+        redirects: updatedRedirects,
+        updatesMade: true,
+        unmergedChanges: true,
+      };
+    }
+    case 'START_SAVING': {
+      return { ...state, saving: true };
+    }
+    case 'END_SAVING': {
+      return { ...state, saving: false };
+    }
+    case 'SHOW_PUBLISHED_MODAL': {
+      return { ...state, showPublishedModal: true };
+    }
+    case 'CLOSE_PUBLISHED_MODAL': {
+      return { ...state, showPublishedModal: false };
+    }
+    default: {
+      return state;
+    }
+  }
+};
+
 export async function getStaticProps() {
   const { data } = await client.query({
     query: repoDetailsQuery,
@@ -60,191 +263,123 @@ export async function getStaticProps() {
   };
 }
 
-const Home = ({ repo }: { repo: any }): JSX.Element => {
-  const { data, mutate: refetchFile } = useSWR("api/get-file", fetcher);
-
-  const [activeForm, setActiveForm] = useState<"new" | number | null>(null);
-  const [loggedIn, setLoggedIn] = useState(netlifyAuth.isAuthenticated);
-
-  const base64 = data?.data.repoData.content;
-  const tomlString = base64 && atob(base64);
-  const json: BranchJSON = (tomlString &&
-    (toml.parse(tomlString) as BranchJSON)) || {
+const Home = (): JSX.Element => {
+  const [state, dispatch] = useReducer(reducer, {
+    mainBranchTomlJson: { redirects: [] },
+    workingBranchTomlJson: { redirects: [] },
+    mainBranchSha: null,
+    workingBranchSha: null,
     redirects: [],
-  };
-  const redirects = json.redirects;
-  const branchBase64 = data?.data.branchFileData.content;
-  const branchTomlString = branchBase64 && atob(branchBase64);
-  const branchJson: BranchJSON = (branchTomlString &&
-    (toml.parse(branchTomlString) as BranchJSON)) || {
-    redirects: [],
-  };
-  const branchRedirects = branchJson.redirects;
-  const mergePull = () => {
-    fetch("/api/new-pull", { method: "POST" }).then((resp) => {
-      refetchFile();
-      setActiveForm(null);
-    });
-  };
+    updatesMade: false,
+    isEditing: false,
+    redirectFormData: {
+      to: '',
+      from: '',
+      status: 301,
+      id: uuid(),
+      mergeStatus: 'NEW',
+    },
+    unmergedChanges: false,
+    saving: false,
+    showPublishedModal: false,
+  });
 
-  const prepareAndSend = (branchJson: BranchJSON) => {
-    const updatedToml = toml.stringify(branchJson);
-    const base64EncodedToml = btoa(updatedToml);
-    const branch = data?.data.branchData[0].url.split("/");
-    const body = {
-      message: "Update redirects",
-      content: `${base64EncodedToml}`,
-      sha: `${data?.data.branchFileData.sha}`,
-      branch: branch[branch.length - 1],
-    };
-    fetch("/api/save-file", { method: "PUT", body: JSON.stringify(body) }).then(
-      (resp) => {
-        refetchFile();
-        setActiveForm(null);
-      }
-    );
-  };
-
-  const handleDelete = (i: number) => {
-    const updatedJson = { ...branchJson };
-    console.log("updatedJson", updatedJson);
-    updatedJson.redirects.splice(i, 1);
-    console.log("updatedJson", updatedJson);
-    prepareAndSend(updatedJson);
-  };
-
-  const handleEdit = (i: number) => {
-    setActiveForm(i);
-  };
-
-  const handleSubmit = (formData: {
-    to: string;
-    from: string;
-    status: string;
-  }) => {
-    const updatedJson = { ...branchJson };
-    if (typeof activeForm === "number") {
-      updatedJson.redirects.splice(activeForm, 1, {
-        to: formData.to,
-        from: formData.from,
-        status: formData.status,
-      });
-    } else {
-      updatedJson.redirects.unshift({
-        to: formData.to,
-        from: formData.from,
-        status: formData.status,
-      });
+  const fetcher = async (url: string) => {
+    dispatch({ type: 'DATA_FETCH_START' });
+    const response = await fetch(url);
+    if (response.status !== 200) {
+      throw new Error('Could not get file');
     }
-    prepareAndSend(updatedJson);
+    const newData = await response.json();
+    dispatch({ type: 'DATA_FETCH_END', newData });
+    return newData;
   };
 
-  const isEditing = activeForm !== "new" && activeForm !== null;
+  const mergePull = async () => {
+    dispatch({ type: 'START_SAVING' });
+    const cleanedRedirects: RedirectType[] = state.redirects
+      .filter(redirect => redirect.mergeStatus !== 'DELETED')
+      .map(redirect => ({ ...redirect, mergeStatus: 'LIVE' }));
+    await saveRedirects(cleanedRedirects);
+    await fetch('/api/new-pull', { method: 'POST' }).then(async () => {
+      await refetchFile();
+    });
 
-  const getRows = () => {
-    const unmergedRedirects =
-      branchRedirects?.filter((obj) => {
-        return !redirects.some((obj2) => {
-          return obj.to === obj2.to && obj.from === obj2.from;
-        });
-      }) || [];
-    const tableRows = (
-      i: number,
-      redirect: RedirectType,
-      isMerged: boolean
-    ) => {
-      return [
-        <div
-          key={`status-icon-${i}`}
-          className={`rounded-full w-5 h-5 ${
-            isMerged ? "bg-green-500" : "bg-yellow-300"
-          }`}
-        ></div>,
-        <p key={`from-${i}`}>{redirect.from}</p>,
-        <p key={`to-${i}`}>{redirect.to}</p>,
-        <p key={`status-${i}`}>{redirect.status}</p>,
-        <div key={`actions-${i}`} className="flex items-center justify-end">
-          <Button
-            size="small"
-            color={isEditing && activeForm === i ? "black" : "transparent"}
-            onClick={() =>
-              isEditing && activeForm === i
-                ? setActiveForm(null)
-                : handleEdit(i)
-            }
-            title={isEditing && activeForm === i ? "Cancel" : "Edit"}
-          >
-            <span className="sr-only">
-              {isEditing && activeForm === i ? "Cancel" : "Edit"}
-            </span>
-            <Pencil />
-          </Button>
-          <ConfirmButton onConfirmClick={() => handleDelete(i)} />
-        </div>,
-      ];
-    };
-    const merged = redirects.map((redirect: RedirectType, i: number) =>
-      tableRows(i, redirect, true)
-    );
-    const unmerged = unmergedRedirects.map(
-      (redirect: RedirectType, i: number) => tableRows(i, redirect, false)
-    );
-    return unmerged.concat(merged);
+    dispatch({ type: 'SHOW_PUBLISHED_MODAL' });
+    dispatch({ type: 'END_SAVING' });
   };
 
-  const renderLogo = () => {
-    return (
-      <div>
-        <div className="flex items-center">
-          <Detour size="xl" colorClassName="text-yellow-500" />
-          <h1 className="font-bold text-5xl">Detour</h1>
-        </div>
-        <h2 className="pl-10 text-2xl">{repo.name.toUpperCase()}</h2>
-        <h3 className="pl-10">{repo.description}</h3>
-      </div>
-    );
-  };
+  const { data, mutate: refetchFile, error } = useSWR<GetFileResponse, { error: string }>('api/get-file', fetcher);
 
-  if (!redirects) {
+  const saveRedirects = useCallback(
+    async (updatedRedirects: RedirectType[]) => {
+      const updatedToml = toml.stringify({ ...state.workingBranchTomlJson, redirects: updatedRedirects });
+      const base64EncodedToml = btoa(updatedToml);
+      const body = {
+        message: 'Update redirects',
+        content: `${base64EncodedToml}`,
+        sha: state.workingBranchSha,
+        branch: 'a-new-branch',
+      };
+      await fetch('/api/save-file', { method: 'PUT', body: JSON.stringify(body) }).then(
+        async () => await refetchFile()
+      );
+    },
+    [refetchFile, state]
+  );
+
+  // Table Config
+  const columns: readonly Column<RedirectType>[] = useMemo(
+    () => [
+      { Header: 'Status', accessor: 'mergeStatus' },
+      { Header: 'From', accessor: 'from' },
+      { Header: 'To', accessor: 'to' },
+      { Header: 'Status', accessor: 'status' },
+    ],
+    []
+  );
+
+  const tableData = useMemo(() => state.redirects, [state]);
+
+  const useTableProps = useTable(
+    {
+      columns,
+      data: tableData,
+      autoResetSortBy: false,
+      autoResetGlobalFilter: false,
+      initialState: { pageSize: 10 },
+    },
+    useGlobalFilter,
+    useSortBy,
+    usePagination
+  );
+
+  if (error) return <div>An error occurred</div>;
+
+  if (!data) {
     return <Loader message="Loading..." />;
-  } else if (loggedIn) {
-    return (
-      <>
-        <div className="flex items-end justify-between mb-10">
-          {renderLogo()}
-          <div>
-            <NetlifyIdentity loggedIn={loggedIn} setLoggedIn={setLoggedIn} />
-            <Button
-              disabled={isEditing}
-              onClick={() =>
-                activeForm ? setActiveForm(null) : setActiveForm("new")
-              }
-            >
-              {activeForm
-                ? `- Cancel ${activeForm !== "new" ? "Update" : "New"} Redirect`
-                : "+ New Redirect"}
-            </Button>
-            <button onClick={mergePull}>Merge pull</button>
-          </div>
-        </div>
-        {typeof activeForm !== "object" && (
-          <AddRedirectForm
-            data={activeForm === "new" ? undefined : redirects[activeForm]}
-            onSubmit={handleSubmit}
-            onCancel={() => setActiveForm(null)}
-          />
-        )}
-        <Table
-          headers={["Status", "From", "To", "Status", ""]}
-          rows={getRows()}
-        />
-      </>
-    );
   }
+
   return (
-    <div className="flex items-end justify-between mb-10">
-      {renderLogo()}
-      <NetlifyIdentity loggedIn={loggedIn} setLoggedIn={setLoggedIn} />
+    <div>
+      <div className="max-w-screen-xl w-11/12 mx-auto">
+        <TableControls
+          unmergedChanges={state.unmergedChanges}
+          updatesMade={state.updatesMade}
+          saveRedirects={async () => {
+            dispatch({ type: 'START_SAVING' });
+            await saveRedirects(state.redirects);
+            dispatch({ type: 'END_SAVING' });
+          }}
+          useTableProps={useTableProps}
+          dispatch={dispatch}
+          mergePull={mergePull}
+          saving={state.saving}
+        />
+        <Table saving={state.saving} useTableProps={useTableProps} dispatch={dispatch} />
+      </div>
+      {state.isEditing && <AddRedirectForm data={state.redirectFormData} dispatch={dispatch} />}
+      {state.showPublishedModal && <PublishedModal closeModal={() => dispatch({ type: 'CLOSE_PUBLISHED_MODAL' })} />}
     </div>
   );
 };

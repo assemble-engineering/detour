@@ -15,10 +15,7 @@ export type TextInputProps = {
   type?: string;
   // unique id for textinput
   id: string;
-  inputProps?: DetailedHTMLProps<
-    InputHTMLAttributes<HTMLInputElement>,
-    HTMLInputElement
-  >;
+  inputProps?: DetailedHTMLProps<InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>;
   // text on displayed label
   labelText: string;
   // placeholder message
@@ -37,15 +34,11 @@ export type TextInputProps = {
   onChange?: (value: string) => void;
   // Adds side effect handler for clicking on an input
   onClick?: (event: MouseEvent) => void;
-  onBlur?: (
-    event: FocusEvent<HTMLInputElement> | SetStateAction<boolean>
-  ) => void;
-  onFocus?: (
-    event: FocusEvent<HTMLInputElement> | SetStateAction<boolean>
-  ) => void;
+  onBlur?: (event: FocusEvent<HTMLInputElement> | SetStateAction<boolean>) => void;
+  onFocus?: (event: FocusEvent<HTMLInputElement> | SetStateAction<boolean>) => void;
   autoFocus?: boolean;
   children?: ReactNode;
-  value?: string;
+  value?: string | number;
 };
 
 const TextInput = ({
@@ -76,11 +69,7 @@ const TextInput = ({
 
   return (
     <div className={classNames([className && className])}>
-      <Label
-        className={classNames([labelClassName && labelClassName])}
-        ariaHidden={true}
-        htmlFor={id}
-      >
+      <Label className={classNames([labelClassName && labelClassName])} ariaHidden={true} htmlFor={id}>
         {labelText}
       </Label>
       <input

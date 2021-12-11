@@ -1,99 +1,110 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Button from './Button';
 import TextInput from './TextInput';
-import Check from './icons/Check';
-import Close from './icons/Close';
 import { RedirectType } from '../types';
+import { Action } from '../pages';
+import { useClickAway } from 'react-use';
 
 type AddRedirectFormProps = {
-  data?: RedirectType;
-  onSubmit: (formData: RedirectType) => void;
-  onCancel: () => void;
+  data: RedirectType;
+  dispatch: React.Dispatch<Action>;
 };
 
-const AddRedirectForm = ({
-  data,
-  onSubmit,
-  onCancel,
-}: AddRedirectFormProps) => {
-  const [formData, setFormData] = useState({ from: '', to: '', status: '301' });
+const AddRedirectForm = ({ data, dispatch }: AddRedirectFormProps) => {
   const [dirtyFields, setDirtyFields] = useState<string[]>([]);
+  const formRef = useRef<HTMLFormElement>(null);
 
-  useEffect(() => {
-    if (data) {
-      setFormData({ from: data.from, to: data.to, status: data.status });
-    }
-  }, [data]);
+  useClickAway(formRef, () => {
+    dispatch({ type: 'CANCEL_EDIT' });
+  });
 
-  const handleChange = (name: string, value: string | boolean) => {
-    const newData = { ...formData, [name]: value };
+  const handleChange = (name: 'to' | 'from' | 'status', value: string) => {
     if (!dirtyFields.includes(name)) {
       setDirtyFields([...dirtyFields, name]);
     }
-    setFormData(newData);
+    dispatch({
+      type: 'EDIT_NEW_REDIRECT_FORM',
+      newData: {
+        ...data,
+        [name]: value,
+      },
+    });
   };
 
-  const handleSubmit: React.FormEventHandler = e => {
-    e.preventDefault();
-    onSubmit(formData);
+  useEffect(() => {
+    const firstInput = formRef.current?.elements?.[0] as HTMLInputElement | undefined;
+    if (firstInput) {
+      firstInput.focus();
+    }
+  }, []);
+
+  const handleSubmit = () => {
+    dispatch({ type: 'SAVE_NEW_REDIRECT' });
   };
 
   return (
-    <form onSubmit={handleSubmit} className='flex align-top w-full py-4'>
-      <TextInput
-        id='from'
-        labelText='From'
-        className='mb-4 mr-4 flex-1'
-        inputClassName='py-4 px-3.5 w-full leading-4 text-left tracking-wider border border-gray-200'
-        labelClassName='w-full left-4 overflow-hidden whitespace-nowrap'
-        onChange={(value: string) => handleChange('from', value)}
-        value={formData.from}
+    <div className="fixed block top-0 l-0 w-screen h-screen z-999" style={{ backgroundColor: 'rgba(0,0,0,0.3)' }}>
+      <form
+        ref={formRef}
+        onSubmit={handleSubmit}
+        className="p-8 bg-white w-11/12 max-w-screen-md mx-auto mt-8 rounded-md shadow-md"
       >
-        {dirtyFields.includes('from') && formData.from.length === 0 && (
-          <p className='text-red-500'>This field is required</p>
-        )}
-      </TextInput>
-      <TextInput
-        id='to'
-        labelText='To'
-        className='mb-4 mr-4 flex-1'
-        inputClassName='py-4 px-3.5 w-full leading-4 text-left tracking-wider border border-gray-200'
-        labelClassName='w-full left-4 overflow-hidden whitespace-nowrap'
-        onChange={(value: string) => handleChange('to', value)}
-        value={formData.to}
-      >
-        {dirtyFields.includes('to') && formData.to.length === 0 && (
-          <p className='text-red-500'>This field is required</p>
-        )}
-      </TextInput>
-      <TextInput
-        id='status'
-        labelText='Status'
-        className='mb-4 mr-4 flex-1'
-        inputClassName='py-4 px-3.5 w-full leading-4 text-left tracking-wider border border-gray-200'
-        labelClassName='w-full left-4 overflow-hidden whitespace-nowrap'
-        onChange={(value: string) => handleChange('status', value)}
-        value={formData.status}
-        disabled
-      />
-      <div className='flex flex-row-reverse py-6'>
-        <Button
-          type='submit'
-          color='transparent'
-          title='Save redirect'
-          disabled={
-            !dirtyFields.length || !formData.from.length || !formData.to.length
-          }
+        <h3 className="text-2xl mb-8">Add new redirect</h3>
+        <TextInput
+          id="from"
+          labelText="From"
+          className="mb-4 mr-4 flex-1"
+          inputClassName="py-4 px-3.5 w-full leading-4 text-left tracking-wider border border-gray-200"
+          labelClassName="w-full left-4 overflow-hidden whitespace-nowrap"
+          onChange={(value: string) => handleChange('from', value)}
+          value={data.from}
         >
-          <span className='sr-only'>{data ? 'Update' : 'Add'} Redirect</span>
-          <Check colorClassName='text-green-500' />
-        </Button>
-        <Button color='transparent' onClick={onCancel} title='Cancel'>
-          <span className='sr-only'>Cancel</span>
-          <Close colorClassName='text-red-400' />
-        </Button>
-      </div>
-    </form>
+          {dirtyFields.includes('from') && data.from.length === 0 && (
+            <p className="text-red-500">This field is required</p>
+          )}
+        </TextInput>
+        <TextInput
+          id="to"
+          labelText="To"
+          className="mb-4 mr-4 flex-1"
+          inputClassName="py-4 px-3.5 w-full leading-4 text-left tracking-wider border border-gray-200"
+          labelClassName="w-full left-4 overflow-hidden whitespace-nowrap"
+          onChange={(value: string) => handleChange('to', value)}
+          value={data.to}
+        >
+          {dirtyFields.includes('to') && data.to.length === 0 && <p className="text-red-500">This field is required</p>}
+        </TextInput>
+        <div>
+          <label htmlFor="status" className="w-full left-4 overflow-hidden whitespace-nowrap">
+            Status
+          </label>
+          <select
+            className="py-4 px-3.5 w-full leading-4 text-left tracking-wider border border-gray-200"
+            value={data.status}
+            name="status"
+            id="status"
+            onChange={e => {
+              handleChange('status', e.target.value);
+            }}
+          >
+            <option value="302">302 (Normal Redirect)</option>
+            <option value="404">404 (Page removed)</option>
+          </select>
+        </div>
+        <div className="flex justify-between pt-6">
+          <Button color="white" onClick={() => dispatch({ type: 'CANCEL_EDIT' })} title="Cancel">
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            title="Save redirect"
+            disabled={!dirtyFields.length || !data.from.length || !data.to.length}
+          >
+            Add Redirect
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 };
 
