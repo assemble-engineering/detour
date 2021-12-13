@@ -12,6 +12,10 @@ const NetlifyIdentity = ({ loggedIn, setLoggedIn }: Props) => {
   netlifyIdentity.on("logout", () => {
     window.location.reload();
   });
+  netlifyIdentity.on('login', user => {
+    setLoggedIn(!!user);
+    netlifyIdentity.close();
+  });
 
   useEffect(() => {
     netlifyAuth.initialize((user) => {
