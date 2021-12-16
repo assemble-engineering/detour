@@ -5,18 +5,14 @@ import styles from '../styles/Button.module.scss';
 /**
  * Button component
  */
-export interface ButtonProps
-  extends DetailedHTMLProps<
-    ButtonHTMLAttributes<HTMLButtonElement>,
-    HTMLButtonElement
-  > {
+export interface ButtonProps extends DetailedHTMLProps<ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement> {
   ariaLabel?: string;
   as?: 'button' | 'a';
   target?: string;
   href?: string;
   rel?: string;
   style?: React.CSSProperties;
-  color?: 'transparent' | 'black' | 'gray' | 'light-gray' | 'peach' | 'white';
+  color?: 'transparent' | 'black' | 'gray' | 'light-gray' | 'peach' | 'white' | 'blue';
   size?: 'small';
   title?: string;
 }

@@ -1,5 +1,5 @@
 .button {
-  @apply text-center bg-yellow-300 border-lime border hover:bg-yellow-200 hover:bg-white text-black hover:text-black uppercase transition-colors font-sans font-light text-base tracking-wider rounded-full px-6 py-3;
+  @apply text-center bg-yellow-500 border-yellow-500 border hover:bg-yellow-300 text-black hover:text-black font-sans font-light text-base tracking-wider rounded-md px-4 py-2 transition-all ease-in-out;
 
   &.button--small {
     @apply px-3 py-1;
@@ -28,6 +28,14 @@
     }
   }
 
+  &.button--blue {
+    @apply bg-blue-500 border-blue-500 hover:bg-blue-400 text-white hover:border-blue-500;
+
+    &:disabled {
+      @apply bg-blue-500 border-blue-500;
+    }
+  }
+
   &.button--peach {
     @apply bg-peach border-peach hover:border-black;
 
@@ -37,7 +45,7 @@
   }
 
   &.button--white {
-    @apply bg-white border-gray-300;
+    @apply bg-white border-gray-200 hover:bg-gray-100 hover:border-gray-300;
   }
 
   &.button--light-gray {

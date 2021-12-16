@@ -1,16 +1,16 @@
 const colors = require('tailwindcss/colors');
 
 module.exports = {
-  mode: 'Jit',
   // Configure Tailwind to remove unused styles in production
-  purge: ['./src/**/*.{js,jsx,ts,tsx}', './public/index.html'],
-  darkMode: false, // or 'media' or 'class'
+  content: ['./pages/**/*.{js,jsx,ts,tsx}', './components/**/*.{js,jsx,ts,tsx}', './public/index.html'],
+  darkMode: 'media', // or 'media' or 'class'
   theme: {
     colors: {
+      blue: colors.blue,
       black: colors.black,
       white: colors.white,
-      purple: colors.purple,
-      yellow: colors.yellow,
+      purple: colors.violet,
+      yellow: colors.amber,
       red: colors.red,
       pink: '#D83294',
       moss: '#7e826b',
@@ -25,7 +25,7 @@ module.exports = {
       },
       green: {
         200: '#A7F3D0',
-        500: '#10b981'
+        500: '#10b981',
       },
       lime: '#e1f88f',
       darkyellow: '#f19c42',
@@ -68,11 +68,6 @@ module.exports = {
       '11/12': '91.666667%',
       full: '100%',
     },
-    screens: {
-      sm: '320px',
-      md: '735px',
-      lg: '1069px',
-    },
     extend: {
       width: {
         160: '40rem',
@@ -81,7 +76,7 @@ module.exports = {
         88: '22rem',
       },
       height: {
-        "75v": '75vh',
+        '75v': '75vh',
         196: '49rem',
         160: '40rem',
         144: '36rem',
@@ -121,8 +116,5 @@ module.exports = {
       textColor: ['active'],
     },
   },
-  plugins: [
-    require('@tailwindcss/typography'),
-    require('@tailwindcss/aspect-ratio'),
-  ],
+  // plugins: [require('@tailwindcss/typography'), require('@tailwindcss/aspect-ratio')],
 };
