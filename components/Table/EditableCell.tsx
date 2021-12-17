@@ -12,7 +12,11 @@ const EditableCell = ({
   const [value, setValue] = useState(initialValue);
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setValue(e.target.value);
+    if (e.target.value === '') {
+      setValue('/');
+    } else {
+      setValue(e.target.value);
+    }
   };
 
   // We'll only update the external data when the input is blurred
@@ -27,7 +31,7 @@ const EditableCell = ({
 
   return (
     <input
-      type={typeof initialValue === 'string' ? 'text' : 'number'}
+      type="text"
       value={value}
       onChange={onChange}
       onBlur={onBlur}
