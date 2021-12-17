@@ -81,6 +81,8 @@ const reducer = (state: State, action: Action): State => {
       };
     }
     case 'DATA_FETCH_END': {
+      let stateRedirectsHaveUpdates = false;
+
       const workingRedirects: RedirectType[] = action.newData.workingBranchTomlJson.redirects.map(redirect => {
         const liveRedirect = action.newData.mainBranchTomlJson.redirects.find(
           mainRedirect => mainRedirect.id === redirect.id
@@ -94,14 +96,13 @@ const reducer = (state: State, action: Action): State => {
             : 'LIVE'
           : 'UPDATED';
 
-        if (status === 'UPDATED') {
-          const stateRedirect = state.redirects.find(stateRedirect => stateRedirect.id === redirect.id);
+        const stateRedirect = state.redirects.find(stateRedirect => stateRedirect.id === redirect.id);
 
-          if (stateRedirect) {
-            return {
-              ...stateRedirect,
-            };
-          }
+        if (stateRedirect && stateRedirect.mergeStatus === 'UPDATED') {
+          stateRedirectsHaveUpdates = true;
+          return {
+            ...stateRedirect,
+          };
         }
 
         return {
@@ -127,7 +128,7 @@ const reducer = (state: State, action: Action): State => {
       return {
         ...state,
         ...action.newData,
-        updatesMade: newRedirects.length > 0,
+        updatesMade: newRedirects.length > 0 || stateRedirectsHaveUpdates,
         unmergedChanges: areUnmergedChanges,
         redirects: [...newRedirects, ...workingRedirects],
         fetching: false,
@@ -378,7 +379,7 @@ const Home = (): JSX.Element => {
           useTableProps={useTableProps}
           dispatch={dispatch}
           mergePull={mergePull}
-          saving={state.saving}
+          saving={state.saving || state.fetching}
         />
         <Table loading={state.saving || state.fetching} useTableProps={useTableProps} dispatch={dispatch} />
       </div>
