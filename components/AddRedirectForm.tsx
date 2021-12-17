@@ -62,6 +62,9 @@ const AddRedirectForm = ({ data, dispatch }: AddRedirectFormProps) => {
           {dirtyFields.includes('from') && data.from.length === 0 && (
             <p className="text-red-500">This field is required</p>
           )}
+          {data.from.length !== 0 && data.from[0] !== '/' && (
+            <p className="text-red-500">From URL must start with a /</p>
+          )}
         </TextInput>
         <TextInput
           id="to"
@@ -73,6 +76,7 @@ const AddRedirectForm = ({ data, dispatch }: AddRedirectFormProps) => {
           value={data.to}
         >
           {dirtyFields.includes('to') && data.to.length === 0 && <p className="text-red-500">This field is required</p>}
+          {data.to.length !== 0 && data.to[0] !== '/' && <p className="text-red-500">To URL must start with a /</p>}
         </TextInput>
         <div>
           <label htmlFor="status" className="w-full left-4 overflow-hidden whitespace-nowrap">
@@ -98,7 +102,9 @@ const AddRedirectForm = ({ data, dispatch }: AddRedirectFormProps) => {
           <Button
             type="submit"
             title="Save redirect"
-            disabled={!dirtyFields.length || !data.from.length || !data.to.length}
+            disabled={
+              !dirtyFields.length || !data.from.length || !data.to.length || data.to[0] !== '/' || data.from[0] !== '/'
+            }
           >
             Add Redirect
           </Button>

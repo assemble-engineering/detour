@@ -52,6 +52,7 @@ export type State = {
   redirectFormData: RedirectType;
   unmergedChanges: boolean;
   saving: boolean;
+  fetching: boolean;
   showPublishedModal: boolean;
 };
 
@@ -76,6 +77,7 @@ const reducer = (state: State, action: Action): State => {
     case 'DATA_FETCH_START': {
       return {
         ...state,
+        fetching: true,
       };
     }
     case 'DATA_FETCH_END': {
@@ -128,6 +130,7 @@ const reducer = (state: State, action: Action): State => {
         updatesMade: newRedirects.length > 0,
         unmergedChanges: areUnmergedChanges,
         redirects: [...newRedirects, ...workingRedirects],
+        fetching: false,
       };
     }
     case 'OPEN_NEW_REDIRECT_FORM': {
@@ -281,6 +284,7 @@ const Home = (): JSX.Element => {
     },
     unmergedChanges: false,
     saving: false,
+    fetching: false,
     showPublishedModal: false,
   });
 
@@ -376,7 +380,7 @@ const Home = (): JSX.Element => {
           mergePull={mergePull}
           saving={state.saving}
         />
-        <Table saving={state.saving} useTableProps={useTableProps} dispatch={dispatch} />
+        <Table loading={state.saving || state.fetching} useTableProps={useTableProps} dispatch={dispatch} />
       </div>
       {state.isEditing && <AddRedirectForm data={state.redirectFormData} dispatch={dispatch} />}
       {state.showPublishedModal && <PublishedModal closeModal={() => dispatch({ type: 'CLOSE_PUBLISHED_MODAL' })} />}

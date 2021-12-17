@@ -1,7 +1,7 @@
 import Cors from 'cors';
 import initMiddleware from '../../utils/initMiddleware';
 import { NextApiRequest, NextApiResponse } from 'next';
-import { fetcher } from '../../lib/api/rest-client';
+import { fetcher, poster } from '../../lib/api/rest-client';
 import env from '../../env';
 import toml from '@iarna/toml';
 import { BranchJSON } from '../../types';
@@ -19,6 +19,8 @@ const getFile = async (req: NextApiRequest, res: NextApiResponse): Promise<void>
   await cors(req, res);
 
   try {
+    await getOrCreateWorkingBranch();
+
     const [mainBranchTomlFileData, workingBranchTomlFileData] = await Promise.all([
       getMainBranchTomlFile(),
       getWorkingBranchTomlFile(),
@@ -55,6 +57,36 @@ const getMainBranchTomlFile = (): Promise<RepoFileData> =>
 
 const getWorkingBranchTomlFile = (): Promise<RepoFileData> =>
   fetcher(`/repos/${env.githubOwner}/${env.githubRepo}/contents/${env.filePath}?ref=a-new-branch`);
+
+const getOrCreateWorkingBranch = async (): Promise<BranchData> => {
+  try {
+    const mainData: BranchData = await fetcher(`/repos/${env.githubOwner}/${env.githubRepo}/git/refs/heads/main`);
+
+    const body = {
+      ref: 'refs/heads/a-new-branch',
+      sha: mainData.object.sha,
+    };
+
+    const branchResponse: BranchData | { message: string } = await poster(
+      `/repos/${env.githubOwner}/${env.githubRepo}/git/refs`,
+      'POST',
+      body
+    );
+
+    if ('ref' in branchResponse) {
+      return branchResponse;
+    } else if (branchResponse.message === 'Reference already exists') {
+      const branchData: BranchData = await fetcher(
+        `/repos/${env.githubOwner}/${env.githubRepo}/git/matching-refs/heads/a-new-branch`
+      );
+      return branchData;
+    } else {
+      throw new Error('Could not get or create working branch tile');
+    }
+  } catch {
+    throw new Error('Could not get or create working branch tile');
+  }
+};
 
 export type GetFileResponse = {
   mainBranchSha: string;

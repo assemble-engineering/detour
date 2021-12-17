@@ -13,18 +13,18 @@ const Table = ({
   useTableProps,
   className,
   dispatch,
-  saving,
+  loading,
 }: {
   useTableProps: TableInstance<RedirectType>;
   dispatch: React.Dispatch<Action>;
   className?: string;
-  saving: boolean;
+  loading: boolean;
 }): JSX.Element => {
   const { getTableProps, getTableBodyProps, headerGroups, prepareRow, page } = useTableProps;
 
   return (
     <div
-      className={classNames(['flex flex-col', className && className], { 'opacity-70 pointer-events-none': saving })}
+      className={classNames(['flex flex-col', className && className], { 'opacity-70 pointer-events-none': loading })}
     >
       <div className="border-b border-gray-200">
         <table {...getTableProps()} className="min-w-full divide-y divide-gray-200">
