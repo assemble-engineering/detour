@@ -98,7 +98,7 @@ const reducer = (state: State, action: Action): State => {
 
         const stateRedirect = state.redirects.find(stateRedirect => stateRedirect.id === redirect.id);
 
-        if (stateRedirect && stateRedirect.mergeStatus === 'UPDATED') {
+        if (stateRedirect && stateRedirect.mergeStatus === 'UPDATED' && !redirectsAreEqual(stateRedirect, redirect)) {
           stateRedirectsHaveUpdates = true;
           return {
             ...stateRedirect,
