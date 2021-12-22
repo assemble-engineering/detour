@@ -21,20 +21,25 @@ const newPull = async (req: NextApiRequest, res: NextApiResponse): Promise<void>
     base: 'main',
   };
   const response = await putter(`/repos/${env.githubOwner}/${env.githubRepo}/pulls`, 'POST', req.body);
-  let data = await response;
 
-  const pullNumber = data.number;
-  // const headSha = data.head.sha;
+  const pullNumber = response.number;
 
-  // const body = {
-  //   pull_number: pullNumber,
-  //   commit_title: "commit title",
-  //   commit_message: "new commit message",
-  //   sha: "headSha", //SHA that pull request head must match to allow merge.
-  //   merge_method: "merge", //Possible values are merge, squash or rebase. Default is merge
-  // };
+  await fetch(`${env.githubRestApi}/repos/${env.githubOwner}/${env.githubRepo}/pulls/${pullNumber}/reviews`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.NEXT_APP_GITHUB_API_KEY_2}`,
+      'Content-Type': 'application/vnd.github.v3+json',
+    },
+    body: JSON.stringify({
+      event: 'APPROVE',
+    }),
+  })
+    .then(res => {
+      return res.json();
+    })
+    .catch(e => console.log(e));
 
-  data = await putter(`/repos/${env.githubOwner}/${env.githubRepo}/pulls/${pullNumber}/merge`, 'PUT', {});
+  const data = await putter(`/repos/${env.githubOwner}/${env.githubRepo}/pulls/${pullNumber}/merge`, 'PUT', {});
 
   res.status(200).json({ data: data });
 };
