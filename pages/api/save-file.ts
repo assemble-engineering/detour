@@ -13,10 +13,7 @@ const cors = initMiddleware(
   })
 );
 
-const saveFile = async (
-  req: NextApiRequest,
-  res: NextApiResponse
-): Promise<void> => {
+const saveFile = async (req: NextApiRequest, res: NextApiResponse): Promise<void> => {
   await cors(req, res);
   const response = await putter(
     `/repos/${env.githubOwner}/${env.githubRepo}/contents/${env.filePath}`,
@@ -26,6 +23,14 @@ const saveFile = async (
   const data = await response;
 
   res.status(200).json({ data: data });
+};
+
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '5mb',
+    },
+  },
 };
 
 export default saveFile;

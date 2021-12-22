@@ -13,28 +13,27 @@ const cors = initMiddleware(
   })
 );
 
-const createBranch = async (
-  req: NextApiRequest,
-  res: NextApiResponse
-): Promise<void> => {
+const createBranch = async (req: NextApiRequest, res: NextApiResponse): Promise<void> => {
   await cors(req, res);
-  let response = await fetcher(
-    `/repos/${env.githubOwner}/${env.githubRepo}/git/refs/heads/main`
-  );
+  let response = await fetcher(`/repos/${env.githubOwner}/${env.githubRepo}/git/refs/heads/main`);
   let data = await response;
   const mainSha = data.object.sha;
   const body = {
     ref: 'refs/heads/a-new-branch',
     sha: mainSha,
   };
-  response = await poster(
-    `/repos/${env.githubOwner}/${env.githubRepo}/git/refs`,
-    'POST',
-    body
-  );
+  response = await poster(`/repos/${env.githubOwner}/${env.githubRepo}/git/refs`, 'POST', body);
   data = await response;
 
   res.status(200).json({ data: data });
+};
+
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '5mb',
+    },
+  },
 };
 
 export default createBranch;
