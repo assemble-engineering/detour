@@ -182,7 +182,7 @@ const reducer = (state: State, action: Action): State => {
         updatesMade: true,
         unmergedChanges: true,
         isEditing: false,
-        redirectFormData: { from: '/', to: '/', status: 301, id: uuid(), mergeStatus: 'NEW' },
+        redirectFormData: { from: '/', to: '/', status: 302, id: uuid(), mergeStatus: 'NEW' },
       };
     }
     case 'CANCEL_EDIT': {
@@ -198,7 +198,7 @@ const reducer = (state: State, action: Action): State => {
         redirectFormData: {
           to: '/',
           from: '/',
-          status: 301,
+          status: 302,
           mergeStatus: 'NEW',
           id: uuid(),
         },
@@ -279,7 +279,7 @@ const Home = (): JSX.Element => {
     redirectFormData: {
       to: '',
       from: '',
-      status: 301,
+      status: 302,
       id: uuid(),
       mergeStatus: 'NEW',
     },
