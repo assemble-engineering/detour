@@ -53,7 +53,7 @@ const getFile = async (req: NextApiRequest, res: NextApiResponse): Promise<void>
 };
 
 const getMainBranchTomlFile = (): Promise<RepoFileData> =>
-  fetcher(`/repos/${env.githubOwner}/${env.githubRepo}/contents/${env.filePath}`);
+  fetcher(`/repos/${env.githubOwner}/${env.githubRepo}/contents/${env.filePath}?ref=main`);
 
 const getWorkingBranchTomlFile = (): Promise<RepoFileData> =>
   fetcher(`/repos/${env.githubOwner}/${env.githubRepo}/contents/${env.filePath}?ref=a-new-branch`);
