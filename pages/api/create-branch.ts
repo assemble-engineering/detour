@@ -19,7 +19,7 @@ const createBranch = async (req: NextApiRequest, res: NextApiResponse): Promise<
   let data = await response;
   const mainSha = data.object.sha;
   const body = {
-    ref: 'refs/heads/a-new-branch',
+    ref: 'refs/heads/detour-redirects',
     sha: mainSha,
   };
   response = await poster(`/repos/${env.githubOwner}/${env.githubRepo}/git/refs`, 'POST', body);

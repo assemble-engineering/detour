@@ -17,7 +17,7 @@ const newPull = async (req: NextApiRequest, res: NextApiResponse): Promise<void>
   // TODO: implement a way to name the new branch
   req.body = {
     title: 'Update Redirects title',
-    head: 'a-new-branch',
+    head: 'detour-redirects',
     base: 'main',
   };
   const response = await putter(`/repos/${env.githubOwner}/${env.githubRepo}/pulls`, 'POST', req.body);

@@ -324,7 +324,7 @@ const Home = (): JSX.Element => {
         message: 'Update redirects',
         content: `${base64EncodedToml}`,
         sha: state.workingBranchSha,
-        branch: 'a-new-branch',
+        branch: 'detour-redirects',
       };
       await fetch('/api/save-file', { method: 'PUT', body: JSON.stringify(body) }).then(
         async () => await refetchFile()

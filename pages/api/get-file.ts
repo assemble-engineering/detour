@@ -56,14 +56,14 @@ const getMainBranchTomlFile = (): Promise<RepoFileData> =>
   fetcher(`/repos/${env.githubOwner}/${env.githubRepo}/contents/${env.filePath}?ref=main`);
 
 const getWorkingBranchTomlFile = (): Promise<RepoFileData> =>
-  fetcher(`/repos/${env.githubOwner}/${env.githubRepo}/contents/${env.filePath}?ref=a-new-branch`);
+  fetcher(`/repos/${env.githubOwner}/${env.githubRepo}/contents/${env.filePath}?ref=detour-redirects`);
 
 const getOrCreateWorkingBranch = async (): Promise<BranchData> => {
   try {
     const mainData: BranchData = await fetcher(`/repos/${env.githubOwner}/${env.githubRepo}/git/refs/heads/main`);
 
     const body = {
-      ref: 'refs/heads/a-new-branch',
+      ref: 'refs/heads/detour-redirects',
       sha: mainData.object.sha,
     };
 
@@ -77,7 +77,7 @@ const getOrCreateWorkingBranch = async (): Promise<BranchData> => {
       return branchResponse;
     } else if (branchResponse.message === 'Reference already exists') {
       const branchData: BranchData = await fetcher(
-        `/repos/${env.githubOwner}/${env.githubRepo}/git/matching-refs/heads/a-new-branch`
+        `/repos/${env.githubOwner}/${env.githubRepo}/git/matching-refs/heads/detour-redirects`
       );
       return branchData;
     } else {
