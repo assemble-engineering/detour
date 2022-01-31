@@ -1,6 +1,41 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# detour
 
-## Getting Started
+User interface for managing redirects that are hosted in a .toml file of a Github repository, typically used with Netlify.
+
+# Table of Contents
+
+- [Stack](#stack)
+- [Getting Started](#getting-started)
+- [Deployment](#deployment)
+
+# Stack <a name="stack"></a>
+
+- React 17.0.2
+- Next.js 11.1.2
+
+This project is written mainly in TypeScript and we require almost all styling to use TailwindCSS, if the designs are unable to be achieved through TailwindCSS, you may create `*.module.scss` files for specific components.
+
+# Getting Started<a name="getting-started"></a>
+
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+
+## **Prerequisites**
+
+Run these commands if you don't have Homebrew, node, and yarn.
+NOTE: Because we require different versions of Node depending on the project, instead of installing node with brew, you may instead want to [install NVM](https://tecadmin.net/install-nvm-macos-with-homebrew/) (Node Version Manager).
+
+```
+/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+brew install node;
+brew install yarn;
+```
+
+## **Set Up Environments**
+
+Next, copy the `.example.env` file in this directory to `.env.local` in the main directory. The rest of the environments that are missing should be available on 1Password.
+
+
+## Setup and run Next.js
 
 First, run the development server:
 
@@ -27,8 +62,10 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
+# Deployment <a name="deployment"></a>
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Netlify handles deployment information through access to the Github that you have linked the services to.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+Sites currently autodeploy:
+
+Production Site: https://gf-detour.netlify.app/
