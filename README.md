@@ -1,6 +1,6 @@
 # detour
 
-User interface for managing redirects that are hosted in a .toml file of a Github repository, typically used with Netlify.
+User interface for managing redirects that are hosted in the netlify.toml file in the respective Github repo. The netlify.toml file is used by Netlify to handle multiple features with redirects being one of them. Netlify does not have a UI for redirects, the Detour app is built as the custom redirect app to allow users modify without having to work in the Github repository directly. Authentication is handled through Netlify Identity https://docs.netlify.com/visitor-access/identity/.
 
 # Table of Contents
 
