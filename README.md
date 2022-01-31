@@ -12,6 +12,10 @@ User interface for managing redirects that are hosted in the netlify.toml file i
 
 - React 17.0.2
 - Next.js 11.1.2
+- Netlify
+- TypeScript
+- Netlify Identity
+- TailwindCSS
 
 This project is written mainly in TypeScript and we require almost all styling to use TailwindCSS, if the designs are unable to be achieved through TailwindCSS, you may create `*.module.scss` files for specific components.
 
